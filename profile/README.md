@@ -1,0 +1,58 @@
+<p align="center">
+  <a href="https://www.isoloom.com"><img src="isoloom-mark.svg" width="84" alt="Isoloom"></a>
+</p>
+
+<h1 align="center">Isoloom</h1>
+
+<p align="center">
+  <strong>One spec. Every environment.</strong><br>
+  Describe your machines, networks and services once. Run them on Docker, local VMs, Proxmox or the cloud, with the same behavior everywhere.
+</p>
+
+<p align="center">
+  <a href="https://www.isoloom.com">Website</a> ·
+  <a href="https://www.isoloom.com/en/docs/introduction">Docs</a> ·
+  <a href="https://www.isoloom.com/en/docs/quick-start">Quick start</a> ·
+  <a href="https://www.isoloom.com/en/docs/spec-reference">Spec reference</a>
+</p>
+
+---
+
+```yaml
+# isoloom.yml
+version: 1
+name: invoice-portal
+networks:
+  app: { cidr: 10.20.0.0/24 }
+machines:
+  database:
+    networks: { app: 32 }
+    services: [{ port: 5432 }]
+    docker: { image: "postgres:16" }                     # as a container
+    vm: { os: debian-12, provision: [provision/db.sh] }  # as a VM, services installed natively
+  web:
+    networks: { app: 31 }
+    services: [{ port: 8080, http: true }]
+    depends_on: [database]
+    docker: { build: build/web }
+    vm: { os: debian-12, provision: [provision/web.sh] }
+checks: [checks/portal-answers.sh]
+```
+
+```text
+$ isoloom targets
+✓ docker  ✓ hosted  ✓ cloud-docker  ✓ vagrant  ✓ proxmox  ✓ cloud-vm  ✓ ludus
+```
+
+**Behavior first.** A spec describes what an environment looks like from outside. Each machine
+can be produced as a container, a VM, or both, and the targets it can run on are derived from
+that. Black-box checks run on every target to prove the behavior is the same.
+
+| Repository | What it is |
+| --- | --- |
+| [isoloom](https://github.com/isoloom/isoloom) | The `isoloom` command line and the `isoloom-core` library, in Rust |
+| [website](https://github.com/isoloom/website) | [www.isoloom.com](https://www.isoloom.com) and its documentation |
+
+Isoloom is at **v0.1**: the format, validation, target derivation and resource totals. The
+generators (Docker Compose, Vagrant, Proxmox) come next; see the
+[roadmap](https://www.isoloom.com/en/docs/roadmap).
